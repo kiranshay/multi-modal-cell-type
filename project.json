@@ -1,0 +1,19 @@
+{
+  "name": "Multi-Modal Cell Type Classifier",
+  "description": "Unified model classifying neuron types by fusing electrophysiology, morphology, and transcriptomics data.",
+  "problem_statement": "Neurons are classified by different modalities separately. Can we integrate all three for better taxonomy?",
+  "technical_approach": "Multi-modal deep learning with late fusion. Handle missing modalities with masked training.",
+  "data_sources": [
+    "Allen Cell Types Database",
+    "Patch-seq data"
+  ],
+  "tags": [
+    "Multi-Modal",
+    "Deep Learning",
+    "Neuroscience",
+    "PyTorch"
+  ],
+  "status": "planned",
+  "github_url": "https://github.com/kiranshay/multi-modal-cell-type",
+  "demo_url": "https://multimodalcelltype.streamlit.app"
+}
