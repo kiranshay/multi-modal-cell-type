@@ -15,7 +15,7 @@ st.set_page_config(
     page_title="Multi-Modal Cell Classifier",
     page_icon="🧬",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # Custom CSS
@@ -83,10 +83,58 @@ st.markdown("""<style>
     padding: 2rem;
     margin: 1rem 0;
 }
+.highlight-box {
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+/* Sidebar expander text fix */
+[data-testid="stSidebar"] [data-testid="stExpander"] {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+[data-testid="stSidebar"] [data-testid="stExpander"] summary,
+[data-testid="stSidebar"] [data-testid="stExpander"] summary span,
+[data-testid="stSidebar"] [data-testid="stExpander"] summary p {
+    color: #94a3b8 !important;
+}
+[data-testid="stSidebar"] [data-testid="stExpander"] p,
+[data-testid="stSidebar"] [data-testid="stExpander"] span,
+[data-testid="stSidebar"] [data-testid="stExpander"] li,
+[data-testid="stSidebar"] [data-testid="stExpander"] div {
+    color: #e2e8f0 !important;
+}
+[data-testid="stSidebar"] [data-testid="stExpander"] strong {
+    color: #f8fafc !important;
+}
+@media (max-width: 768px) {
+    .main .block-container { padding: 1rem; }
+    .main-header { font-size: 1.5rem; }
+    .subtitle { font-size: 0.9rem; margin-bottom: 1rem; }
+    .section-header { font-size: 1.2rem; }
+    .metric-container { padding: 0.75rem; margin-bottom: 0.5rem; }
+    .metric-container h3 { font-size: 1.1rem; }
+    .param-grid { grid-template-columns: 1fr; }
+    .stTabs [data-baseweb="tab-list"] { padding: 4px; gap: 2px; }
+    .stTabs [data-baseweb="tab"] { height: 36px; padding: 0 8px; font-size: 0.7rem; }
+    .def-item { flex-direction: column; gap: 0.25rem; }
+    .def-term { min-width: auto; }
+    .subsection-header { font-size: 1.1rem; }
+}
 </style>""", unsafe_allow_html=True)
 
 st.markdown('<h1 class="main-header">🧬 Multi-Modal Cell Type Classifier</h1>', unsafe_allow_html=True)
 st.markdown('<p class="sub-header">Unified Deep Learning for Neuron Classification • Electrophysiology • Morphology • Transcriptomics</p>', unsafe_allow_html=True)
+
+st.markdown("""
+<div class="highlight-box">
+<p>👈 <strong>Getting started:</strong> Open the sidebar (arrow at top-left)
+to configure parameters. Changes update visualizations in real time.</p>
+</div>
+""", unsafe_allow_html=True)
 
 
 class MultiModalClassifier:
@@ -261,12 +309,32 @@ true_cell_type = st.sidebar.selectbox(
     help="Select the true cell type for simulation"
 )
 
+with st.sidebar.expander("ℹ️ What are these?"):
+    st.markdown("""
+- **Ground Truth Cell Type** -- the neuron identity the simulator
+  uses to generate synthetic data. Think of it as the "answer key"
+  the classifier tries to recover.
+""")
+
 st.sidebar.markdown("---")
 st.sidebar.markdown("### Available Modalities")
 
 use_ephys = st.sidebar.checkbox("Electrophysiology", value=True)
 use_morph = st.sidebar.checkbox("Morphology", value=True)
 use_trans = st.sidebar.checkbox("Transcriptomics", value=True)
+
+with st.sidebar.expander("ℹ️ What are these?"):
+    st.markdown("""
+- **Electrophysiology** -- simulated patch-clamp voltage traces
+  showing how a neuron fires action potentials.
+- **Morphology** -- a 2-D projection of the neuron's dendritic
+  tree (shape and branching pattern).
+- **Transcriptomics** -- a synthetic gene-expression profile
+  indicating which genes are active.
+
+Toggle any combination to see how the classifier's confidence
+and attention weights change.
+""")
 
 available = []
 if use_ephys:
@@ -288,28 +356,30 @@ attention_weights = classifier.compute_attention_weights(available)
 tab1, tab2, tab3, tab4 = st.tabs(["📊 Classification", "🔬 Data Modalities", "🏗️ Architecture", "📖 Background"])
 
 with tab1:
-    # Results header
-    col1, col2, col3, col4 = st.columns(4)
+    # Results header -- two rows of two columns for mobile friendliness
+    row1_col1, row1_col2 = st.columns(2)
 
-    with col1:
+    with row1_col1:
         st.markdown(f"""<div class="metric-card">
 <div class="metric-value">{predicted}</div>
 <div class="metric-label">Predicted Cell Type</div>
 </div>""", unsafe_allow_html=True)
 
-    with col2:
+    with row1_col2:
         st.markdown(f"""<div class="metric-card">
 <div class="metric-value" style="color: #3b82f6;">{confidence:.1%}</div>
 <div class="metric-label">Confidence</div>
 </div>""", unsafe_allow_html=True)
 
-    with col3:
+    row2_col1, row2_col2 = st.columns(2)
+
+    with row2_col1:
         st.markdown(f"""<div class="metric-card">
 <div class="metric-value" style="color: #a855f7;">{len(available)}/3</div>
 <div class="metric-label">Modalities Used</div>
 </div>""", unsafe_allow_html=True)
 
-    with col4:
+    with row2_col2:
         color = "#22c55e" if predicted == true_cell_type else "#ef4444"
         match = "Correct" if predicted == true_cell_type else "Incorrect"
         st.markdown(f"""<div class="metric-card">
@@ -395,7 +465,7 @@ with tab2:
 
         t, vm = classifier.generate_ephys_trace(true_cell_type)
 
-        fig, ax = plt.subplots(figsize=(12, 3))
+        fig, ax = plt.subplots(figsize=(10, 3))
         ax.plot(t * 1000, vm, color='#f97316', linewidth=0.8)
         ax.set_xlabel('Time (ms)', fontsize=10)
         ax.set_ylabel('Vm (mV)', fontsize=10)
